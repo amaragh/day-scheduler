@@ -67,8 +67,21 @@ $(".container").on("click", "button", function (event) {
     var taskTime = textAreaEl.attr("id");
     console.log(task, taskTime);
 
-    var timeTask = { "time": taskTime, "task": task };
-    tasks.push(timeTask);
+    var timeExistsObj = tasks.find(obj => obj.time === taskTime);
+    // check if there is already a saved task in the tasks array
+    if (timeExistsObj) {
+        var index = tasks.indexOf(timeExistsObj);
+        // replace exiting task in tasks array
+        tasks[index].task = task;
+    }
+    else {
+        // create new task
+        var timeTask = { "time": taskTime, "task": task };
+        tasks.push(timeTask);
+    }
+
+    console.log(tasks);
+    
     saveTasks();
 });
 
@@ -87,17 +100,16 @@ var loadTasks = function () {
     for (var i = 0; i < savedTasks.length; i++) {
         var task = savedTasks[i].task;
         var time = savedTasks[i].time;
-        console.log("savedTask",task, "; savedTime",time)
+        console.log("savedTask", task, "; savedTime", time)
 
         console.log($("textarea[id='" + time + "']"));
 
         textArea = $("textarea[id='" + time + "']");
 
-        if(textArea){
-            textArea.text(task);
-        }
+        textArea.text(task);
+
     }
-    tasks =savedTasks;
+    tasks = savedTasks;
 };
 displayHourChunks();
 
