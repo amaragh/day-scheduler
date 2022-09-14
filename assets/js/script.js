@@ -3,73 +3,53 @@ var headerDate = moment().format("dddd, MMMM Do");
 
 $("#currentDay").text(headerDate)
 
-// var hourChunks = ["9AM", "10AM", "11AM", "12PM", "1PM", "2PM", "3PM", "4PM", "5PM"];
-
+// array of desired time bock times in 24-hour
 var hourChunks = [9, 10, 11, 12, 13, 14, 15, 16, 17];
 
 tasks = [];
 
+// function to dynamically generate time blocks and display them on the page
 var displayHourChunks = function () {
     for (var i = 0; i < hourChunks.length; i++) {
         var hourChunk = hourChunks[i];
+        // time format to be displayed on time block
         hourChunkFormatted = moment().set("hour", hourChunk).format("hA");
-        var timeBlock = $("<div>").addClass("row time-block");
 
+        var timeBlock = $("<div>").addClass("row time-block");
         var hourDiv = $("<div>").addClass("hour col-1").text(hourChunkFormatted);
 
-        // determine if 'i' time block is past, present, future in relation to current moment
-        var relTime = checkTime(hourChunk);
+        var taskHolder = $("<div>").addClass("col-10 description p-0");
+        var taskArea = $("<textarea>").attr("id", hourChunk);
+        taskHolder.append(taskArea)
 
-        var taskArea = $("<textarea>").addClass("col-10 description").attr("id", hourChunkFormatted);
-        taskArea.addClass(relTime);
-
+        // save button
         var save = $("<div>").addClass("saveBtn col-1").append("<button><i class='far fa-save'></i></button>");
 
         // add timeblock to the .container element
-        timeBlock.append(hourDiv, taskArea, save);
+        timeBlock.append(hourDiv, taskHolder, save);
         $(".container").append(timeBlock);
     }
-
+    // load saved tasks to page from localStorage
     loadTasks();
     saveTasks();
 };
 
-var checkTime = function (timeBlockEl) {
-
-    var blockTime = moment().set("hour", timeBlockEl).format("HH");
-    // extract hour from current time in format that matches format from the time block
-    var currTime = moment().format("HH");
-
-    console.log("BLOCK TIME:", blockTime, "; CURR TIME:", currTime);
-
-    // compare time for the time block to the current moment
-    if (currTime > blockTime) {
-        var relBlockTime = "past"
-    }
-    else if (currTime === blockTime) {
-        var relBlockTime = "present"
-    }
-    else if (currTime < blockTime) {
-        var relBlockTime = "future"
-    }
-    console.log(relBlockTime);
-    return relBlockTime;
-
-};
-
+// function to save task to localStorage when save icon is clicked
 $(".container").on("click", "button", function (event) {
     event.preventDefault;
-
+    // find textarea element within the timeblock for this button
     var btnDivEl = $(this).closest("div");
-    var textAreaEl = btnDivEl.siblings("textarea");
+    var textAreaDivEl = btnDivEl.siblings(".description");
+    var textAreaEl = textAreaDivEl.find("textarea");
 
     var task = textAreaEl.val();
     var taskTime = textAreaEl.attr("id");
-    console.log(task, taskTime);
 
+    // check if the existing tasks array contains a value for this time block
     var timeExistsObj = tasks.find(obj => obj.time === taskTime);
     // check if there is already a saved task in the tasks array
     if (timeExistsObj) {
+        // find index of existing task object
         var index = tasks.indexOf(timeExistsObj);
         // replace exiting task in tasks array
         tasks[index].task = task;
@@ -80,36 +60,67 @@ $(".container").on("click", "button", function (event) {
         tasks.push(timeTask);
     }
 
-    console.log(tasks);
-    
     saveTasks();
 });
 
+// saves tasks to localStorage
 var saveTasks = function () {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+//  retrieves tasks from localStorage
 var loadTasks = function () {
     savedTasks = JSON.parse(localStorage.getItem("tasks"));
 
     if (!savedTasks) {
         var savedTasks = [];
     }
-    console.log(savedTasks);
 
     for (var i = 0; i < savedTasks.length; i++) {
         var task = savedTasks[i].task;
         var time = savedTasks[i].time;
-        console.log("savedTask", task, "; savedTime", time)
 
-        console.log($("textarea[id='" + time + "']"));
-
+        // locate textarea element that has the corresponding id value for this time
         textArea = $("textarea[id='" + time + "']");
 
         textArea.text(task);
-
     }
     tasks = savedTasks;
 };
-displayHourChunks();
 
+
+//  function loops through all text areas to compare time for the text area's time block to the current time
+var checkTimeText = function () {
+    // array of all textarea elements
+    var textAreas = $("textarea");
+    // current time
+    var currTime = moment().hour();
+
+    for (var i = 0; i < textAreas.length; i++) {
+        var textArea = $(textAreas[i])
+        // extract timeblock time which is stored as id on textarea element
+        var blockTime = textArea.attr("id");
+        // clear class on textarea in prep for adding the updated class
+        textArea.removeClass();
+
+        // compare time for the time block to the current moment and update the class based on result
+        if (currTime > blockTime) {
+            textArea.addClass("past");
+        }
+        else if (currTime === blockTime) {
+            textArea.addClass("present");
+        }
+        else if (currTime < blockTime) {
+            textArea.addClass("future");
+        }
+    }
+};
+
+// load all time blocks to the page
+displayHourChunks()
+
+// initial time check on time blocks to display initial color code
+checkTimeText();
+
+// evaluation of time every minute to keep task colors up to date by the minute
+setInterval(function() {checkTimeText()}, 60000);
