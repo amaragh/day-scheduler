@@ -20,7 +20,7 @@ When a task is saved on the page, it is also pushed to `localStorage` and is rel
 
 The colors of the time blocks are dependent on the the relation between the time listed on the block and the time at which the day scheduler application is being loaded. TIme blocks in the past will be grey, the time block for the current hour will be red, and future time blocks will be green.
 
-The application contains functionality to re-evaluate the time against each of the time blocks at regular intervals so that the color indications remain up to date. Below is a screenshot of the application when in use.
+The application contains functionality to re-evaluate the current time against each of the time blocks at regular intervals so that the color indicators remain up to date. Below is a screenshot of the application when in use.
 
 ![Day scheduler web page with some saved tasks and differently colored time blocks](./assets/images/day-planner-sample.png)
 
